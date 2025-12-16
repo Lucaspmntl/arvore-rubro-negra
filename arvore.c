@@ -299,6 +299,15 @@ void search(int data) {
 }
 
 
+void preorder(Node *node) {
+    if (node != NULL_NODE) {
+        printf("%d (%s) ", node->data, node->color == RED ? "R" : "B");
+        preorder(node->left);
+        preorder(node->right);
+    }
+}
+
+
 void inorder(Node *node) {
     if (node != NULL_NODE) {
         inorder(node->left);
@@ -308,13 +317,22 @@ void inorder(Node *node) {
 }
 
 
+void postorder(Node *node) {
+    if (node != NULL_NODE) {
+        postorder(node->left);
+        postorder(node->right);
+        printf("%d (%s) ", node->data, node->color == RED ? "R" : "B");
+    }
+}
+
 int main() {
-    initializeNULL_NODE();
+    initializeNullNode();
     root = NULL_NODE;
-    int choice, val;
+    int choice, val, travChoice;
 
     while (1) {
-        printf("\n1. Insert\n2. Delete\n3. Search\n4. Display (In-Order)\n5. Exit\nChoice: ");
+        printf("\n=== RED BLACK TREE ===\n");
+        printf("1. Insert\n2. Delete\n3. Search\n4. Display (Traversals)\n5. Exit\nChoice: ");
         scanf("%d", &choice);
 
         switch (choice) {
@@ -334,7 +352,20 @@ int main() {
                 search(val);
                 break;
             case 4:
-                inorder(root);
+                printf("\nSelect Traversal Type:\n");
+                printf("1. Pre-Order (Root-Left-Right)\n");
+                printf("2. In-Order  (Left-Root-Right)\n");
+                printf("3. Post-Order (Left-Right-Root)\n");
+                printf("Option: ");
+                scanf("%d", &travChoice);
+                
+                printf("\nResult: ");
+                switch(travChoice) {
+                    case 1: preorder(root); break;
+                    case 2: inorder(root); break;
+                    case 3: postorder(root); break;
+                    default: printf("Invalid traversal option.");
+                }
                 printf("\n");
                 break;
             case 5:
