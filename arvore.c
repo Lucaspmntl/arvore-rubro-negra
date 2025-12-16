@@ -15,7 +15,6 @@ typedef struct Node {
 Node *root;
 Node *NULL_NODE;
 
-
 void initializeNullNode() {
     NULL_NODE = (Node *)malloc(sizeof(Node));
     NULL_NODE->color = BLACK;
@@ -25,91 +24,107 @@ void initializeNullNode() {
 
 
 Node* createNode(int data) {
-    Node *node = (Node *)malloc(sizeof(Node));
-    node->data = data;
-    node->parent = NULL;
-    node->left = NULL_NODE;
-    node->right = NULL_NODE;
-    node->color = RED;
-    return node;
+    Node *newNode = (Node *)malloc(sizeof(Node));
+    newNode->data = data;
+    newNode->parent = NULL;
+    newNode->left = NULL_NODE;
+    newNode->right = NULL_NODE;
+    newNode->color = RED;
+    return newNode;
 }
 
 
-void leftRotate(Node *x) {
-    Node *y = x->right;
-    x->right = y->left;
-    if (y->left != NULL_NODE) {
-        y->left->parent = x;
+void leftRotate(Node *nodeToRotate) {
+    Node *rightChild = nodeToRotate->right;
+    nodeToRotate->right = rightChild->left;
+
+    if (rightChild->left != NULL_NODE) {
+        rightChild->left->parent = nodeToRotate;
     }
-    y->parent = x->parent;
-    if (x->parent == NULL) {
-        root = y;
-    } else if (x == x->parent->left) {
-        x->parent->left = y;
+
+    rightChild->parent = nodeToRotate->parent;
+
+    if (nodeToRotate->parent == NULL) {
+        root = rightChild;
+    } else if (nodeToRotate == nodeToRotate->parent->left) {
+        nodeToRotate->parent->left = rightChild;
     } else {
-        x->parent->right = y;
+        nodeToRotate->parent->right = rightChild;
     }
-    y->left = x;
-    x->parent = y;
+
+    rightChild->left = nodeToRotate;
+    nodeToRotate->parent = rightChild;
 }
 
 
-void rightRotate(Node *x) {
-    Node *y = x->left;
-    x->left = y->right;
-    if (y->right != NULL_NODE) {
-        y->right->parent = x;
+void rightRotate(Node *nodeToRotate) {
+    Node *leftChild = nodeToRotate->left;
+    nodeToRotate->left = leftChild->right;
+
+    if (leftChild->right != NULL_NODE) {
+        leftChild->right->parent = nodeToRotate;
     }
-    y->parent = x->parent;
-    if (x->parent == NULL) {
-        root = y;
-    } else if (x == x->parent->right) {
-        x->parent->right = y;
+
+    leftChild->parent = nodeToRotate->parent;
+
+    if (nodeToRotate->parent == NULL) {
+        root = leftChild;
+    } else if (nodeToRotate == nodeToRotate->parent->right) {
+        nodeToRotate->parent->right = leftChild;
     } else {
-        x->parent->left = y;
+        nodeToRotate->parent->left = leftChild;
     }
-    y->right = x;
-    x->parent = y;
+
+    leftChild->right = nodeToRotate;
+    nodeToRotate->parent = leftChild;
 }
 
 
-void insertFixup(Node *k) {
-    Node *u;
-    while (k->parent->color == RED) {
-        if (k->parent == k->parent->parent->right) {
-            u = k->parent->parent->left;
-            if (u->color == RED) {
-                u->color = BLACK;
-                k->parent->color = BLACK;
-                k->parent->parent->color = RED;
-                k = k->parent->parent;
+void insertFixup(Node *fixingNode) {
+    Node *uncle;
+
+    while (fixingNode->parent->color == RED) {
+
+        if (fixingNode->parent == fixingNode->parent->parent->right) {
+            uncle = fixingNode->parent->parent->left;
+            
+            if (uncle->color == RED) {
+                uncle->color = BLACK;
+                fixingNode->parent->color = BLACK;
+                fixingNode->parent->parent->color = RED;
+                fixingNode = fixingNode->parent->parent;
+            
             } else {
-                if (k == k->parent->left) {
-                    k = k->parent;
-                    rightRotate(k);
+                if (fixingNode == fixingNode->parent->left) {
+                    fixingNode = fixingNode->parent;
+                    rightRotate(fixingNode);
                 }
-                k->parent->color = BLACK;
-                k->parent->parent->color = RED;
-                leftRotate(k->parent->parent);
+                fixingNode->parent->color = BLACK;
+                fixingNode->parent->parent->color = RED;
+                leftRotate(fixingNode->parent->parent);
             }
+        
         } else {
-            u = k->parent->parent->right;
-            if (u->color == RED) {
-                u->color = BLACK;
-                k->parent->color = BLACK;
-                k->parent->parent->color = RED;
-                k = k->parent->parent;
+            uncle = fixingNode->parent->parent->right;
+            
+            if (uncle->color == RED) {
+                uncle->color = BLACK;
+                fixingNode->parent->color = BLACK;
+                fixingNode->parent->parent->color = RED;
+                fixingNode = fixingNode->parent->parent;
+            
             } else {
-                if (k == k->parent->right) {
-                    k = k->parent;
-                    leftRotate(k);
+                if (fixingNode == fixingNode->parent->right) {
+                    fixingNode = fixingNode->parent;
+                    leftRotate(fixingNode);
                 }
-                k->parent->color = BLACK;
-                k->parent->parent->color = RED;
-                rightRotate(k->parent->parent);
+                fixingNode->parent->color = BLACK;
+                fixingNode->parent->parent->color = RED;
+                rightRotate(fixingNode->parent->parent);
             }
         }
-        if (k == root) {
+        
+        if (fixingNode == root) {
             break;
         }
     }
@@ -118,50 +133,56 @@ void insertFixup(Node *k) {
 
 
 void insert(int data) {
-    Node *node = createNode(data);
-    Node *y = NULL;
-    Node *x = root;
+    Node *newNode = createNode(data);
+    Node *parent = NULL;
+    Node *current = root;
 
-    while (x != NULL_NODE) {
-        y = x;
-        if (node->data < x->data) {
-            x = x->left;
+    while (current != NULL_NODE) {
+        parent = current;
+        if (newNode->data < current->data) {
+            current = current->left;
+        
         } else {
-            x = x->right;
+            current = current->right;
         }
     }
 
-    node->parent = y;
-    if (y == NULL) {
-        root = node;
-    } else if (node->data < y->data) {
-        y->left = node;
+    newNode->parent = parent;
+    if (parent == NULL) {
+        root = newNode;
+
+    } else if (newNode->data < parent->data) {
+        parent->left = newNode;
+
     } else {
-        y->right = node;
+        parent->right = newNode;
     }
 
-    if (node->parent == NULL) {
-        node->color = BLACK;
+    if (newNode->parent == NULL) {
+        newNode->color = BLACK;
         return;
     }
 
-    if (node->parent->parent == NULL) {
+    if (newNode->parent->parent == NULL) {
         return;
     }
 
-    insertFixup(node);
+    insertFixup(newNode);
 }
 
 
-void rbTransplant(Node *u, Node *v) {
-    if (u->parent == NULL) {
-        root = v;
-    } else if (u == u->parent->left) {
-        u->parent->left = v;
+void rbTransplant(Node *oldNode, Node *newNode) {
+    if (oldNode->parent == NULL) {
+        root = newNode;
+
+    } else if (oldNode == oldNode->parent->left) {
+        oldNode->parent->left = newNode;
+
     } else {
-        u->parent->right = v;
+        oldNode->parent->right = newNode;
     }
-    v->parent = u->parent;
+
+    newNode->parent = oldNode->parent;
 }
 
 
@@ -173,122 +194,137 @@ Node* minimum(Node *node) {
 }
 
 
-void deleteFixup(Node *x) {
-    Node *s;
-    while (x != root && x->color == BLACK) {
-        if (x == x->parent->left) {
-            s = x->parent->right;
-            if (s->color == RED) {
-                s->color = BLACK;
-                x->parent->color = RED;
-                leftRotate(x->parent);
-                s = x->parent->right;
+void deleteFixup(Node *doubleBlackNode) {
+    Node *sibling;
+    
+    while (doubleBlackNode != root && doubleBlackNode->color == BLACK) {
+        if (doubleBlackNode == doubleBlackNode->parent->left) {
+            sibling = doubleBlackNode->parent->right;
+            
+            if (sibling->color == RED) {
+                sibling->color = BLACK;
+                doubleBlackNode->parent->color = RED;
+                leftRotate(doubleBlackNode->parent);
+                sibling = doubleBlackNode->parent->right;
             }
-            if (s->left->color == BLACK && s->right->color == BLACK) {
-                s->color = RED;
-                x = x->parent;
+            
+            if (sibling->left->color == BLACK && sibling->right->color == BLACK) {
+                sibling->color = RED;
+                doubleBlackNode = doubleBlackNode->parent;
+            
             } else {
-                if (s->right->color == BLACK) {
-                    s->left->color = BLACK;
-                    s->color = RED;
-                    rightRotate(s);
-                    s = x->parent->right;
+                if (sibling->right->color == BLACK) {
+                    sibling->left->color = BLACK;
+                    sibling->color = RED;
+                    rightRotate(sibling);
+                    sibling = doubleBlackNode->parent->right;
                 }
-                s->color = x->parent->color;
-                x->parent->color = BLACK;
-                s->right->color = BLACK;
-                leftRotate(x->parent);
-                x = root;
+                sibling->color = doubleBlackNode->parent->color;
+                doubleBlackNode->parent->color = BLACK;
+                sibling->right->color = BLACK;
+                leftRotate(doubleBlackNode->parent);
+                doubleBlackNode = root;
             }
+        
         } else {
-            s = x->parent->left;
-            if (s->color == RED) {
-                s->color = BLACK;
-                x->parent->color = RED;
-                rightRotate(x->parent);
-                s = x->parent->left;
+            sibling = doubleBlackNode->parent->left;
+            if (sibling->color == RED) {
+                sibling->color = BLACK;
+                doubleBlackNode->parent->color = RED;
+                rightRotate(doubleBlackNode->parent);
+                sibling = doubleBlackNode->parent->left;
             }
-            if (s->right->color == BLACK && s->left->color == BLACK) {
-                s->color = RED;
-                x = x->parent;
+            
+            if (sibling->right->color == BLACK && sibling->left->color == BLACK) {
+                sibling->color = RED;
+                doubleBlackNode = doubleBlackNode->parent;
+            
             } else {
-                if (s->left->color == BLACK) {
-                    s->right->color = BLACK;
-                    s->color = RED;
-                    leftRotate(s);
-                    s = x->parent->left;
+                if (sibling->left->color == BLACK) {
+                    sibling->right->color = BLACK;
+                    sibling->color = RED;
+                    leftRotate(sibling);
+                    sibling = doubleBlackNode->parent->left;
                 }
-                s->color = x->parent->color;
-                x->parent->color = BLACK;
-                s->left->color = BLACK;
-                rightRotate(x->parent);
-                x = root;
+                sibling->color = doubleBlackNode->parent->color;
+                doubleBlackNode->parent->color = BLACK;
+                sibling->left->color = BLACK;
+                rightRotate(doubleBlackNode->parent);
+                doubleBlackNode = root;
             }
         }
     }
-    x->color = BLACK;
+    doubleBlackNode->color = BLACK;
 }
 
 
 void deleteNode(int key) {
-    Node *z = NULL_NODE;
-    Node *x, *y;
-    Node *node = root;
+    Node *nodeToDelete = NULL_NODE;
+    Node *replacementNode, *movedNode;
+    Node *current = root;
 
-    while (node != NULL_NODE) {
-        if (node->data == key) {
-            z = node;
+    while (current != NULL_NODE) {
+        if (current->data == key) {
+            nodeToDelete = current;
         }
-        if (node->data <= key) {
-            node = node->right;
+        if (current->data <= key) {
+            current = current->right;
         } else {
-            node = node->left;
+            current = current->left;
         }
     }
 
-    if (z == NULL_NODE) {
+    if (nodeToDelete == NULL_NODE) {
         printf("Value not found.\n");
         return;
     }
 
-    y = z;
-    int y_original_color = y->color;
-    if (z->left == NULL_NODE) {
-        x = z->right;
-        rbTransplant(z, z->right);
-    } else if (z->right == NULL_NODE) {
-        x = z->left;
-        rbTransplant(z, z->left);
+    movedNode = nodeToDelete;
+    int movedNodeOriginalColor = movedNode->color;
+
+    if (nodeToDelete->left == NULL_NODE) {
+        replacementNode = nodeToDelete->right;
+        rbTransplant(nodeToDelete, nodeToDelete->right);
+    
+    } else if (nodeToDelete->right == NULL_NODE) {
+        replacementNode = nodeToDelete->left;
+        rbTransplant(nodeToDelete, nodeToDelete->left);
+    
     } else {
-        y = minimum(z->right);
-        y_original_color = y->color;
-        x = y->right;
-        if (y->parent == z) {
-            x->parent = y;
+        movedNode = minimum(nodeToDelete->right);
+        movedNodeOriginalColor = movedNode->color;
+        replacementNode = movedNode->right;
+
+        if (movedNode->parent == nodeToDelete) {
+            replacementNode->parent = movedNode;
         } else {
-            rbTransplant(y, y->right);
-            y->right = z->right;
-            y->right->parent = y;
+            rbTransplant(movedNode, movedNode->right);
+            movedNode->right = nodeToDelete->right;
+            movedNode->right->parent = movedNode;
         }
-        rbTransplant(z, y);
-        y->left = z->left;
-        y->left->parent = y;
-        y->color = z->color;
+
+        rbTransplant(nodeToDelete, movedNode);
+        movedNode->left = nodeToDelete->left;
+        movedNode->left->parent = movedNode;
+        movedNode->color = nodeToDelete->color;
     }
-    if (y_original_color == BLACK) {
-        deleteFixup(x);
+
+    if (movedNodeOriginalColor == BLACK) {
+        deleteFixup(replacementNode);
     }
-    free(z);
+    free(nodeToDelete);
 }
 
 
 void search(int data) {
     Node *current = root;
+    
     while (current != NULL_NODE) {
         if (data == current->data) {
             printf("Found: %d (Color: %s)\n", data, current->color == RED ? "RED" : "BLACK");
             return;
         }
+        
         if (data < current->data) {
             current = current->left;
         } else {
@@ -325,10 +361,11 @@ void postorder(Node *node) {
     }
 }
 
+
 int main() {
     initializeNullNode();
     root = NULL_NODE;
-    int choice, val, travChoice;
+    int choice, value, traversalChoice;
 
     while (1) {
         printf("\n=== RED BLACK TREE ===\n");
@@ -338,29 +375,32 @@ int main() {
         switch (choice) {
             case 1:
                 printf("Value: ");
-                scanf("%d", &val);
-                insert(val);
+                scanf("%d", &value);
+                insert(value);
                 break;
+
             case 2:
                 printf("Value: ");
-                scanf("%d", &val);
-                deleteNode(val);
+                scanf("%d", &value);
+                deleteNode(value);
                 break;
+
             case 3:
                 printf("Value: ");
-                scanf("%d", &val);
-                search(val);
+                scanf("%d", &value);
+                search(value);
                 break;
+
             case 4:
                 printf("\nSelect Traversal Type:\n");
                 printf("1. Pre-Order (Root-Left-Right)\n");
                 printf("2. In-Order  (Left-Root-Right)\n");
                 printf("3. Post-Order (Left-Right-Root)\n");
                 printf("Option: ");
-                scanf("%d", &travChoice);
+                scanf("%d", &traversalChoice);
                 
                 printf("\nResult: ");
-                switch(travChoice) {
+                switch(traversalChoice) {
                     case 1: preorder(root); break;
                     case 2: inorder(root); break;
                     case 3: postorder(root); break;
@@ -368,8 +408,10 @@ int main() {
                 }
                 printf("\n");
                 break;
+
             case 5:
                 return 0;
+                
             default:
                 printf("Invalid.\n");
         }
